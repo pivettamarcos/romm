@@ -143,6 +143,7 @@
 #       # Select a media type from the list above (eg. box2d, screenshot, etc.)
 #       thumbnail: box2d # Use as the <thumbnail> tag in the exported gamelist.xml
 #       image: screenshot  # Use as the <image> tag in the exported gamelist.xml
+#     assets_folder: assets # Folder where local export media subfolders are written; use "" or "." for platform root
 #   pegasus:
 #     export: false # Whether to export metadata.pegasus.txt for Pegasus
 

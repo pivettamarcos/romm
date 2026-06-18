@@ -79,6 +79,7 @@ def test_config_loader():
     assert loader.config.SCAN_LANGUAGE_PRIORITY == ["jp", "es"]
     assert loader.config.GAMELIST_MEDIA_THUMBNAIL == "box3d"
     assert loader.config.GAMELIST_MEDIA_IMAGE == "title_screen"
+    assert loader.config.GAMELIST_ASSET_FOLDER == "assets"
 
 
 def test_empty_config_loader():
@@ -113,6 +114,7 @@ def test_empty_config_loader():
     assert loader.config.EJS_CONTROLS == {}
     assert loader.config.GAMELIST_MEDIA_THUMBNAIL == "box2d"
     assert loader.config.GAMELIST_MEDIA_IMAGE == "screenshot"
+    assert loader.config.GAMELIST_ASSET_FOLDER == "assets"
 
 
 def test_missing_config_file_is_created(tmp_path):

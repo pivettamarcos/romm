@@ -134,6 +134,7 @@ class Config:
     SCAN_MEDIA: list[str]
     GAMELIST_MEDIA_THUMBNAIL: MetadataMediaType
     GAMELIST_MEDIA_IMAGE: MetadataMediaType
+    GAMELIST_ASSET_FOLDER: str
 
     def __init__(self, **entries):
         self.__dict__.update(entries)
@@ -443,6 +444,11 @@ class ConfigManager:
                 "scan.gamelist.media.image",
                 MetadataMediaType.SCREENSHOT,
             ),
+            GAMELIST_ASSET_FOLDER=pydash.get(
+                self._raw_config,
+                "scan.gamelist.assets_folder",
+                "assets",
+            ),
             PEGASUS_AUTO_EXPORT_ON_SCAN=pydash.get(
                 self._raw_config, "scan.pegasus.export", False
             ),
@@ -715,6 +721,24 @@ class ConfigManager:
                 f"{MetadataMediaType.SCREENSHOT.value!r}. Valid options: {sorted(o.value for o in valid_image_options)}."
             )
             self.config.GAMELIST_MEDIA_IMAGE = MetadataMediaType.SCREENSHOT
+
+        if not isinstance(self.config.GAMELIST_ASSET_FOLDER, str):
+            log.critical(
+                "Invalid config.yml: scan.gamelist.assets_folder must be a string"
+            )
+            sys.exit(3)
+
+        asset_folder = self.config.GAMELIST_ASSET_FOLDER.strip()
+        if asset_folder in ("", "."):
+            self.config.GAMELIST_ASSET_FOLDER = ""
+        else:
+            asset_path = Path(asset_folder)
+            if asset_path.is_absolute() or any(part == ".." for part in asset_path.parts):
+                log.critical(
+                    "Invalid config.yml: scan.gamelist.assets_folder must be a relative path without parent directory references"
+                )
+                sys.exit(3)
+            self.config.GAMELIST_ASSET_FOLDER = asset_folder.rstrip("/\\")
 
     def get_config(self) -> Config:
         try:

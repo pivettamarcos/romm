@@ -33,3 +33,4 @@ class ConfigResponse(TypedDict):
     SCAN_MEDIA: list[str]
     GAMELIST_MEDIA_THUMBNAIL: MetadataMediaType
     GAMELIST_MEDIA_IMAGE: MetadataMediaType
+    GAMELIST_ASSET_FOLDER: str

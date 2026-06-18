@@ -124,10 +124,12 @@ class GamelistExporter:
         refs: dict[str, str] = {}
 
         if self.local_export:
+            asset_folder = cm.get_config().GAMELIST_ASSET_FOLDER
             for asset_key, source_path in assets.items():
                 subdir = ASSET_DIRS.get(asset_key, asset_key)
                 dest_name = f"{rom.fs_name_no_ext}{source_path.suffix}"
-                rel_path = f"./assets/{subdir}/{dest_name}"
+                prefix = f"./{asset_folder}/" if asset_folder else "./"
+                rel_path = f"{prefix}{subdir}/{dest_name}"
 
                 if platform_dir is not None:
                     dest_path = platform_dir / rel_path

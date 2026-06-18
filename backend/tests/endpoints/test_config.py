@@ -29,6 +29,7 @@ def test_config(client):
     assert not config.get("SKIP_HASH_CALCULATION")
     assert config.get("GAMELIST_MEDIA_THUMBNAIL") == "box2d"
     assert config.get("GAMELIST_MEDIA_IMAGE") == "screenshot"
+    assert config.get("GAMELIST_ASSET_FOLDER") == "assets"
 
 
 def test_add_platform_binding_payload_shape(client, access_token: str):

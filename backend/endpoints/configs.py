@@ -72,6 +72,7 @@ def get_config(request: Request) -> ConfigResponse:
         SCAN_MEDIA=cfg.SCAN_MEDIA,
         GAMELIST_MEDIA_THUMBNAIL=cfg.GAMELIST_MEDIA_THUMBNAIL,
         GAMELIST_MEDIA_IMAGE=cfg.GAMELIST_MEDIA_IMAGE,
+        GAMELIST_ASSET_FOLDER=cfg.GAMELIST_ASSET_FOLDER,
     )
 
 

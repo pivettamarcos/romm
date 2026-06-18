@@ -1,9 +1,11 @@
 from os.path import isabs
+from types import SimpleNamespace
 from xml.etree.ElementTree import fromstring
 
 import pytest
 
 from config import FRONTEND_RESOURCES_PATH
+from config.config_manager import cm
 from handler.database import db_platform_handler, db_rom_handler
 from handler.filesystem import fs_platform_handler, fs_resource_handler
 from models.platform import Platform
@@ -367,6 +369,84 @@ async def test_export_platform_to_file_copies_assets(
     for tag, expected in expected_refs.items():
         elem = game.find(tag)
         assert elem is not None and elem.text == expected
+
+
+async def test_export_platform_to_file_uses_custom_asset_folder(
+    platform_with_roms, isolated_filesystem, monkeypatch
+):
+    resources_base, library_base = isolated_filesystem
+    platform, _ = platform_with_roms
+
+    sources = {
+        "snes/covers/super-mario-world.jpg": b"cover-bytes",
+        "snes/screenshots/super-mario-world-1.jpg": b"shot-bytes",
+    }
+    for rel, content in sources.items():
+        src = resources_base / rel
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_bytes(content)
+
+    monkeypatch.setattr(cm, "get_config", lambda: SimpleNamespace(GAMELIST_ASSET_FOLDER="my_assets"))
+    exporter = GamelistExporter(local_export=True)
+    assert await exporter.export_platform_to_file(platform.id, request=None) is True
+
+    platform_dir = library_base / fs_platform_handler.get_platform_fs_structure(
+        platform.fs_slug
+    )
+
+    expected_assets = {
+        "my_assets/covers/Super Mario World (USA).jpg": b"cover-bytes",
+        "my_assets/screenshots/Super Mario World (USA).jpg": b"shot-bytes",
+    }
+    for rel, content in expected_assets.items():
+        dest = platform_dir / rel
+        assert dest.is_file(), f"missing asset {dest}"
+        assert dest.read_bytes() == content
+
+    game = fromstring((platform_dir / "gamelist.xml").read_text()).findall("game")[0]
+    thumbnail = game.find("thumbnail")
+    screenshot = game.find("screenshot")
+    assert thumbnail is not None and thumbnail.text == "./my_assets/covers/Super Mario World (USA).jpg"
+    assert screenshot is not None and screenshot.text == "./my_assets/screenshots/Super Mario World (USA).jpg"
+
+
+async def test_export_platform_to_file_uses_root_asset_folder(
+    platform_with_roms, isolated_filesystem, monkeypatch
+):
+    resources_base, library_base = isolated_filesystem
+    platform, _ = platform_with_roms
+
+    sources = {
+        "snes/covers/super-mario-world.jpg": b"cover-bytes",
+        "snes/screenshots/super-mario-world-1.jpg": b"shot-bytes",
+    }
+    for rel, content in sources.items():
+        src = resources_base / rel
+        src.parent.mkdir(parents=True, exist_ok=True)
+        src.write_bytes(content)
+
+    monkeypatch.setattr(cm, "get_config", lambda: SimpleNamespace(GAMELIST_ASSET_FOLDER=""))
+    exporter = GamelistExporter(local_export=True)
+    assert await exporter.export_platform_to_file(platform.id, request=None) is True
+
+    platform_dir = library_base / fs_platform_handler.get_platform_fs_structure(
+        platform.fs_slug
+    )
+
+    expected_assets = {
+        "covers/Super Mario World (USA).jpg": b"cover-bytes",
+        "screenshots/Super Mario World (USA).jpg": b"shot-bytes",
+    }
+    for rel, content in expected_assets.items():
+        dest = platform_dir / rel
+        assert dest.is_file(), f"missing asset {dest}"
+        assert dest.read_bytes() == content
+
+    game = fromstring((platform_dir / "gamelist.xml").read_text()).findall("game")[0]
+    thumbnail = game.find("thumbnail")
+    screenshot = game.find("screenshot")
+    assert thumbnail is not None and thumbnail.text == "./covers/Super Mario World (USA).jpg"
+    assert screenshot is not None and screenshot.text == "./screenshots/Super Mario World (USA).jpg"
 
 
 async def test_export_platform_to_file_omits_tags_when_copy_fails(
